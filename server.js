@@ -62,7 +62,7 @@ function broadcastMetric() {
 
 setInterval(broadcastMetric, 1000);
 
-const PORT = 3000;
+const PORT = 3017;
 server.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
