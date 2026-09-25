@@ -1,0 +1,12 @@
+{
+  "name": "ws-dashboard",
+  "version": "1.0.0",
+  "description": "Minimal WebSocket learning project - live metrics dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
