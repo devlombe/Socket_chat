@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Live Metrics Dashboard</title>
+<style>
+  body { font-family: system-ui, sans-serif; background: #0f1115; color: #eee; padding: 2rem; }
+  h1 { font-weight: 500; }
+  #status { margin-bottom: 1.5rem; font-size: 0.9rem; }
+  #status.connected { color: #4ade80; }
+  #status.disconnected { color: #f87171; }
+  .cards { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .card { background: #1a1d23; border-radius: 12px; padding: 1.5rem 2rem; min-width: 160px; }
+  .card .label { font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+  .card .value { font-size: 2.5rem; font-weight: 600; margin-top: 0.25rem; }
+  #log { margin-top: 2rem; font-size: 0.8rem; color: #666; }
+</style>
+</head>
+<body>
+  <h1>Live Metrics Dashboard</h1>
+  <div id="status" class="disconnected">Connecting…</div>
+
+  <div class="cards">
+    <div class="card"><div class="label">CPU</div><div class="value" id="cpu">--</div></div>
+    <div class="card"><div class="label">Memory</div><div class="value" id="memory">--</div></div>
+    <div class="card"><div class="label">Req/sec</div><div class="value" id="rps">--</div></div>
+  </div>
+
+  <div id="log">Waiting for data…</div>
+
+<script>
+  const statusEl = document.getElementById('status');
+  const cpuEl = document.getElementById('cpu');
+  const memEl = document.getElementById('memory');
+  const rpsEl = document.getElementById('rps');
+  const logEl = document.getElementById('log');
+
+  function connect() {
+    const ws = new WebSocket(`ws://${location.host}`);
+
+    ws.addEventListener('open', () => {
+      statusEl.textContent = 'Connected';
+      statusEl.className = 'connected';
+    });
+
+    ws.addEventListener('message', (event) => {
+      const data = JSON.parse(event.data);
+
+      if (data.type === 'welcome') {
+        logEl.textContent = data.message;
+      }
+
+      if (data.type === 'metric') {
+        cpuEl.textContent = data.cpu + '%';
+        memEl.textContent = data.memory + '%';
+        rpsEl.textContent = data.requestsPerSec;
+        logEl.textContent = 'Last update: ' + new Date(data.timestamp).toLocaleTimeString();
+      }
+    });
+
+    ws.addEventListener('close', () => {
+      statusEl.textContent = 'Disconnected — retrying in 2s…';
+      statusEl.className = 'disconnected';
+      setTimeout(connect, 2000); // basic reconnect logic
+    });
+
+    ws.addEventListener('error', () => {
+      ws.close();
+    });
+  }
+
+  connect();
+</script>
+</body>
+</html>
